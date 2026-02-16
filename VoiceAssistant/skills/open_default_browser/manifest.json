@@ -1,0 +1,15 @@
+{
+    "id": "open_default_browser",
+    "phrases": [
+        "открой браузер",
+        "запусти браузер"
+    ],
+    "patterns": [],
+    "action": {
+        "type": "open_url",
+        "args": {
+            "url": "about:blank"
+        }
+    },
+    "responseSound": "assets/ok.wav"
+}

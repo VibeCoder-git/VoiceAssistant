@@ -1,0 +1,5 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/VoiceAssistant.App/VoiceAssistant.App.csproj" />
+  </Folder>
+</Solution>

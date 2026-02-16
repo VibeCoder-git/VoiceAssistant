@@ -1,0 +1,28 @@
+# User requested
+.env
+.venv/
+venv/
+__pycache__/
+*.pyc
+node_modules/
+dist/
+build/
+.idea/
+.vscode/
+.DS_Store
+
+# Sensitive / Secrets
+google-stt.json
+*.key
+*.pfx
+secrets*
+id_rsa
+*.pem
+
+# .NET / Visual Studio
+bin/
+obj/
+.vs/
+*.user
+*.suo
+*.log
