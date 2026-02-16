@@ -43,7 +43,7 @@ namespace VoiceAssistant.App
                     Config = config,
                     RingBuffer = new RingBuffer(config.Timing.RingBufferMs),
                     AudioCapture = new AudioCaptureService(config.Audio),
-                    Resampler = new AudioResampler(),
+
                     Vad = new VadService(config.Audio),
                     Skills = new SkillRegistry(),
                     Stt = new GoogleStreamingSttService(config)
@@ -96,6 +96,7 @@ namespace VoiceAssistant.App
                      // Toggle logic
                      _context.Config.Audio.AudioMode = _context.Config.Audio.AudioMode == "Headphones" ? "Speakers" : "Headphones";
                      UserSettingsStore.Save(_context.Config);
+                     _context.TrayMenu.UpdateAudioMode(_context.Config.Audio.AudioMode);
                 };
 
                 // 9. State Machine

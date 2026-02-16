@@ -11,7 +11,7 @@ namespace VoiceAssistant.App.Core
     {
         public AppConfig Config { get; set; }
         public AudioCaptureService AudioCapture { get; set; }
-        public AudioResampler Resampler { get; set; } // May not be needed if capture handles it
+
         public VadService Vad { get; set; }
         public RingBuffer RingBuffer { get; set; }
         public IWakeWordDetector WakeDetector { get; set; }

@@ -18,6 +18,7 @@ namespace VoiceAssistant.App.Tray
         public event EventHandler OnExit;
 
         private ToolStripMenuItem _deviceMenuItem;
+        private ToolStripMenuItem _audioModeMenuItem;
 
         public ContextMenuStrip ContextMenu => _contextMenu;
 
@@ -56,12 +57,12 @@ namespace VoiceAssistant.App.Tray
             };
             _contextMenu.Items.Add(logTranscriptsItem);
 
-            var audioModeItem = new ToolStripMenuItem($"Mode: {_config.Audio.AudioMode}");
-            audioModeItem.Click += (s, e) =>
+            _audioModeMenuItem = new ToolStripMenuItem($"Mode: {_config.Audio.AudioMode}");
+            _audioModeMenuItem.Click += (s, e) =>
             {
                 OnToggleAudioMode?.Invoke(this, EventArgs.Empty);
             };
-            _contextMenu.Items.Add(audioModeItem);
+            _contextMenu.Items.Add(_audioModeMenuItem);
 
             _contextMenu.Items.Add(new ToolStripSeparator());
 
@@ -102,6 +103,14 @@ namespace VoiceAssistant.App.Tray
              {
                  item.Text = $"Status: {status}";
              }
+        }
+
+        public void UpdateAudioMode(string mode)
+        {
+            if (_audioModeMenuItem != null)
+            {
+                _audioModeMenuItem.Text = $"Mode: {mode}";
+            }
         }
     }
 }
