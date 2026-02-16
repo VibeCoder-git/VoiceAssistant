@@ -116,7 +116,7 @@ namespace VoiceAssistant.App.Core
                     try
                     {
                         await Task.Delay(_ctx.Config.Timing.SilenceStopMs, token);
-                        if (token.IsCanceled) return;
+                        if (token.IsCancellationRequested) return;
 
                         Log.Information("Silence timeout (ACTIVE). Stopping stream.");
                         await TransitionToAsync(AssistantState.IDLE);

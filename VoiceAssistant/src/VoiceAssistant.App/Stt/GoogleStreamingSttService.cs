@@ -2,6 +2,7 @@ using Google.Apis.Auth.OAuth2;
 using Google.Cloud.Speech.V1;
 using Grpc.Auth;
 using Grpc.Core;
+using Google.Api.Gax.Grpc;
 using Serilog;
 using System;
 using System.IO;
@@ -16,7 +17,6 @@ namespace VoiceAssistant.App.Stt
         private readonly AppConfig _config;
 
         private SpeechClient? _speechClient;
-        private Channel? _channel;
 
         private readonly object _lock = new object();
         private SpeechClient.StreamingRecognizeStream? _call;
@@ -43,13 +43,13 @@ namespace VoiceAssistant.App.Stt
             Log.Information("Using Google credentials: {Path}", credentialPath);
 
             var credential = GoogleCredential.FromFile(credentialPath);
-            _channel = new Channel(
-                SpeechClient.DefaultEndpoint.Host,
-                SpeechClient.DefaultEndpoint.Port,
-                credential.ToChannelCredentials()
-            );
+            
+            var builder = new SpeechClientBuilder
+            {
+                Credential = credential
+            };
 
-            _speechClient = await SpeechClient.CreateAsync(_channel);
+            _speechClient = await builder.BuildAsync();
         }
 
         private string? FindCredentialFile()
@@ -143,10 +143,8 @@ namespace VoiceAssistant.App.Stt
         {
             try
             {
-                while (await call.ResponseStream.MoveNext(token))
+                await foreach (var response in call.GetResponseStream())
                 {
-                    var response = call.ResponseStream.Current;
-
                     foreach (var result in response.Results)
                     {
                         if (result.Alternatives.Count == 0) continue;
@@ -258,15 +256,7 @@ namespace VoiceAssistant.App.Stt
             Task.Run(async () =>
             {
                 try { await StopStreamAsync(); } catch { }
-                try
-                {
-                    if (_channel != null)
-                    {
-                        await _channel.ShutdownAsync();
-                        _channel = null;
-                    }
-                }
-                catch { /* ignore */ }
+                // _speechClient manages its own channel/connections typically
             });
         }
     }

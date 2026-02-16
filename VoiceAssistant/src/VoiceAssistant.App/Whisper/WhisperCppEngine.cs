@@ -65,7 +65,9 @@ namespace VoiceAssistant.App.Whisper
                 Directory.CreateDirectory(dir);
             }
 
-            using var modelStream = await WhisperGgmlDownloader.GetGgmlModelAsync(type); // Using 'type' as derived from _config.WakeModel
+            using var httpClient = new System.Net.Http.HttpClient();
+            var downloader = new WhisperGgmlDownloader(httpClient);
+            using var modelStream = await downloader.GetGgmlModelAsync(type); // Using 'type' as derived from _config.WakeModel
             using var fileStream = File.OpenWrite(_modelPath);
             await modelStream.CopyToAsync(fileStream);
             Log.Information("Model downloaded successfully.");
