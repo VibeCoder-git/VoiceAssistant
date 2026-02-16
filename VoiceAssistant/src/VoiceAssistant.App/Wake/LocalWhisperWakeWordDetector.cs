@@ -3,7 +3,7 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using VoiceAssistant.App.Config;
-using VoiceAssistant.App.Core; // Assuming TextNormalizer is here
+using VoiceAssistant.App.Core; 
 using VoiceAssistant.App.Whisper;
 
 namespace VoiceAssistant.App.Wake
@@ -23,6 +23,11 @@ namespace VoiceAssistant.App.Wake
 
         public async Task<WakeResult> DetectAsync(byte[] audioData)
         {
+            if (audioData == null || audioData.Length < 2) 
+            {
+                return new WakeResult { IsWake = false, Text = "" };
+            }
+
             // Convert byte[] PCM 16-bit to float[] for Whisper
             var floats = BytesToFloats(audioData);
 
@@ -46,8 +51,12 @@ namespace VoiceAssistant.App.Wake
 
         private float[] BytesToFloats(byte[] bytes)
         {
-            var floats = new float[bytes.Length / 2];
-            for (int i = 0; i < bytes.Length; i += 2)
+            // Ensure we handle odd lengths safely by ignoring the last byte if necessary
+            int len = bytes.Length;
+            if ((len % 2) != 0) len--; 
+
+            var floats = new float[len / 2];
+            for (int i = 0; i < len; i += 2)
             {
                 short sample = BitConverter.ToInt16(bytes, i);
                 floats[i / 2] = sample / 32768f;
