@@ -29,7 +29,7 @@ namespace VoiceAssistant.App.Core
         // Logic & Timers
         private CancellationTokenSource _silenceCts;
         private bool _wakeCheckedInCurrentSpeech;
-        private bool _wakeConfirmed; // New flag for multi-step verification
+        private bool _wakeConfirmed; 
 
         public AssistantState CurrentState => _currentState;
 
@@ -49,6 +49,7 @@ namespace VoiceAssistant.App.Core
             _ctx.Vad.SpeechStarted += OnSpeechStarted;
             _ctx.Vad.SpeechEnded += OnSpeechEnded;
             _ctx.Stt.TranscriptReceived += OnSttTranscript;
+            _ctx.Stt.Error += OnSttError;
 
             _ctx.AudioCapture.Start();
             Log.Information("Assistant Started. Listening...");
@@ -62,7 +63,7 @@ namespace VoiceAssistant.App.Core
             // 1. Buffer & Process
             var pcm = chunk.Data;
             _ctx.RingBuffer.Add(pcm);
-            _ctx.Vad.ProcessChunk(chunk); // Updates VAD state
+            _ctx.Vad.ProcessChunk(chunk); 
 
             // 2. Stream if ACTIVE
             if (_currentState == AssistantState.ACTIVE)
@@ -82,7 +83,6 @@ namespace VoiceAssistant.App.Core
 
             if (_currentState == AssistantState.IDLE)
             {
-                // Task.Run + Delay instead of ContinueWith
                 _ = Task.Run(async () => 
                 {
                     try 
@@ -111,7 +111,6 @@ namespace VoiceAssistant.App.Core
                 _silenceCts = new CancellationTokenSource();
                 var token = _silenceCts.Token;
 
-                // Task.Run + Delay instead of ContinueWith
                 _ = Task.Run(async () => 
                 {
                     try
@@ -141,6 +140,12 @@ namespace VoiceAssistant.App.Core
             {
                 Log.Error(ex, "Error processing transcript");
             }
+        }
+
+        private void OnSttError(object sender, string error)
+        {
+            Log.Error($"STT Error received: {error}");
+            // Optional: Transition to IDLE if critical, but for now just log
         }
 
         // --- Core Logic ---
@@ -363,7 +368,7 @@ namespace VoiceAssistant.App.Core
                          outputDevice.PlaybackStopped += (s,e) => tcs.TrySetResult(true);
                          outputDevice.Play();
                          
-                         if (!tcs.Task.Wait(TimeSpan.FromSeconds(5))) // Safety timeout
+                         if (!tcs.Task.Wait(TimeSpan.FromSeconds(5))) 
                          {
                              outputDevice.Stop();
                          }
@@ -380,7 +385,21 @@ namespace VoiceAssistant.App.Core
 
         public void Dispose()
         {
-             if (_ctx?.AudioCapture != null) _ctx.AudioCapture.AudioCaptured -= OnAudioCaptured;
+            if (_ctx == null) return;
+
+             // Full unsubscribe
+             if (_ctx.AudioCapture != null) _ctx.AudioCapture.AudioCaptured -= OnAudioCaptured;
+             if (_ctx.Vad != null)
+             {
+                 _ctx.Vad.SpeechStarted -= OnSpeechStarted;
+                 _ctx.Vad.SpeechEnded -= OnSpeechEnded;
+             }
+             if (_ctx.Stt != null)
+             {
+                 _ctx.Stt.TranscriptReceived -= OnSttTranscript;
+                 _ctx.Stt.Error -= OnSttError;
+             }
+
              _audioCts?.Cancel();
              _silenceCts?.Cancel();
              _transitionLock?.Dispose();
